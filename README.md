@@ -4,6 +4,8 @@ An interactive explainer of the MSc thesis *CVA Capital under CRR3: EU Exemption
 It starts from what CVA is and goes as far as the thesis's results: which approach is cheaper, what the EU exemptions do, and how much a CDS hedge saves under each approach.
 SA-CCR, BA-CVA and the SA-CVA aggregation are rebuilt from the CRR3 text in TypeScript. Every idea comes with a chart you can push around.
 
+**▶ [Open the app](https://jacoblbfreitag.github.io/cva-capital-lab/)**
+
 It is a sibling of [rates-options-lab](https://github.com/Jacoblbfreitag/rates-options-lab) and [energy-commodities-lab](https://github.com/Jacoblbfreitag/energy-commodities-lab) and uses the same lesson format and building blocks.
 The research code lives in the thesis repository, `cva-capital-crr3`.
 

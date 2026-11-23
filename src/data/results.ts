@@ -72,7 +72,47 @@ export const headline = {
   exemptSharePct: 25.45, tenorBestSA: 5.05, tenorBestSAyears: 10, tenorWorstSA: 10.29,
   sigmaCrossBp: 66.4, sigmaHist1yBp: 62.8, sigmaHist2yBp: 81.3, robSigmaLowPct: -51.1, robSigmaHighPct: 51.5,
   mcStdPct: 1.46, cvaAggregate: 3.36,
+  // Added with the 20 Nov 2026 draft (review fixes T1/T2): the rational EU cell, where a capital-minimising bank
+  // without the opt-in hedges only the names in the calculation (experiment F), and the SA − BA gap it implies.
+  euRatBAfullMatched: 1.78, euRatSAfullMatched: 3.13, baselGapFullMatched: 2.45, euRatGapFullMatched: 1.35, euRatGapCutPctMatched: 45.01,
+  euRatBAfull5y: 1.78, euRatSAfull5y: 7.35, baselGapFull5y: 6.8, euRatGapFull5y: 5.57, euRatGapCutPct5y: 18.16,
+  baselGapUnhedged: 2.07, euGapUnhedged: 1.48, euRatVegaFullMatched: 2.2, baselVegaFullMatched: 3.38,
+  euSAbaseVega: 2.2, euSAbaseVegaSharePct: 25.52, euSAbaseDeltaOnly: 6.41,
+  pensionShareSCVA: 40.65, maxExemptSharePct: 59.35, secondSharePct: 47.47,
+  topShareEUnoOptBA: 7.03, topShareEUnoOptSA: 5.99, topShareEUoptBA: 3.39, topShareEUoptSA: 9.06,
+  sigmaHistLastYear1yBp: 46.08, robBaseSAzero: 8.63, robBaseBAzero: 7.13, robSigmaLowSAzero: 4.22, robSigmaLowSAfull: 2.49,
+  mrPerReliefBA5y: 0.44, mrPerReliefSA5y: 0.21, mrPerReliefBAMatched: 0.3, mrPerReliefSAMatched: 0.15,
+  bestTotalBAMatched: 3.8, bestTotalSAMatched: 4.16,
 };
+
+/**
+ * The cell the 20 Nov draft makes the EU baseline: EU scope, no opt-in, and only the names in the calculation
+ * hedged (the excluded names stay unhedged, so there is no Art. 386(5) charge). Read from experiment F's pure
+ * endpoints; `basel` is the same hedge in Basel scope.
+ */
+export function rationalCell(tenor: 'five_year' | 'matched', h: number) {
+  const f = (scope: Scope) => results.mixed.find((r) => r.scope === scope && !r.opt_in && r.tenor_mode === tenor && r.hedge_ratio === h)!;
+  const eu = f('eu');
+  const basel = f('basel');
+  return {
+    eu: { ba: eu.pure_ba_cva, sa: eu.pure_sa_cva, gap: eu.pure_sa_cva - eu.pure_ba_cva },
+    basel: { ba: basel.pure_ba_cva, sa: basel.pure_sa_cva, gap: basel.pure_sa_cva - basel.pure_ba_cva },
+  };
+}
+
+/**
+ * The hedged ranking at a common notional (experiment E2b, Basel scope, exposure basis): the smallest SA − BA gap
+ * over the grid. Answers "your ranking compares 129 against 23 EUR m of CDS".
+ */
+export function equalNotionalGaps() {
+  const rows = results.fixedNotional.filter((r) => r.allocation === 'exposure' && r.scope === 'basel');
+  const keys = [...new Set(rows.map((r) => `${r.notional_target}|${r.hedge_tenor}`))];
+  return keys.map((k) => {
+    const [n, t] = k.split('|').map(Number);
+    const at = (a: Approach) => rows.find((r) => r.notional_target === n && r.hedge_tenor === t && r.approach === a)!.total_capital;
+    return { notional: n, tenor: t, ba: at('ba_cva'), sa: at('sa_cva'), gap: at('sa_cva') - at('ba_cva') };
+  });
+}
 
 // ── SA-CVA rebuilt from the frozen sensitivities ──────────────────────────
 

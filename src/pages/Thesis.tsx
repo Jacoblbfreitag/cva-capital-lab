@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Chart, palette } from '../components/Chart';
 import { Stats } from '../components/Controls';
 import { TexBlock } from '../components/Formula';
-import { InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Takeaways, Term } from '../components/Lesson';
+import { DefenceCorner, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Takeaways, Term } from '../components/Lesson';
 import { headline } from '../data/results';
 import { portfolio, sectorLabels, totalNotional } from '../data/portfolio';
 
@@ -60,8 +60,9 @@ export default function Thesis() {
         <Note title="The EU twist">
           Art. 382(4) takes the trades of several counterparty types out of the charge: corporates below the EMIR clearing threshold,
           intragroup trades, some pension funds, and sovereigns with a 0 % risk weight. Basel has no such exemptions. CRR3 also lets
-          a bank <em>opt</em> a hedged exempt counterparty back in (Art. 382(4a)), and charges market-risk capital on CDS
-          that hedge exempt counterparties outside the CVA charge (Art. 386(5)).
+          a bank <em>opt</em> a hedged exempt counterparty back in (Art. 382(4a)). A CDS on an exempt counterparty left outside the CVA charge
+          is not recognised. The thesis reads Art. 386(4) and 386(5) together as putting it under the market-risk rules of Title IV. That is a{' '}
+          <em>reading</em>: neither paragraph addresses that case directly.
         </Note>
       </Section>
 
@@ -69,13 +70,14 @@ export default function Thesis() {
         <p>The thesis models a bank that minimises the cost of its capital through three choices:</p>
         <ol>
           <li><strong>How much CDS protection to buy</strong> on each counterparty, B<sub>c</sub>.</li>
-          <li><strong>Which exempt counterparties to opt back in</strong>, O, which is possible only if they are hedged.</li>
+          <li><strong>Which exempt counterparties to opt back in</strong>, O. The thesis reads Art. 382(4a) as admitting hedged names only, one by one.</li>
           <li><strong>Which counterparties go under SA-CVA</strong>, S, and which under BA-CVA (Art. 382a(3) allows a mix).</li>
         </ol>
         <TexBlock>{String.raw`\min_{B,\,O,\,S}\;\kappa\Bigl[K_{\mathrm{SA}}(S,B) + K_{\mathrm{BA}}(I\setminus S,B) + K_{\mathrm{MR}}\bigl(\{B_c\}_{c\in E\setminus O}\bigr)\Bigr] + F\,\mathbf 1\{S\neq\emptyset\} + \psi\textstyle\sum_c B_c`}</TexBlock>
         <p className="muted">
           κ is the cost of equity, F the fixed cost of running SA-CVA, ψ the running cost per unit of CDS notional. K<sub>MR</sub> is
-          the market-risk charge on CDS that hedge exempt counterparties left outside the charge.
+          the market-risk charge on CDS that hedge exempt counterparties left outside the charge. κ, F and ψ are not calibrated, so every capital
+          comparison in the thesis is at F = ψ = 0.
         </p>
       </Section>
 
@@ -103,21 +105,45 @@ export default function Thesis() {
             { label: 'BA-CVA floor, full hedge', value: `${headline.betaFloor}`, hint: 'EUR m, β · K_reduced' },
             { label: 'SA-CVA, full hedge, matched tenor', value: `${headline.matchedSAfullHedge}`, hint: 'EUR m, Basel scope' },
             { label: 'Vega share of unhedged SA-CVA', value: `${headline.baselSAvegaSharePct}%`, hint: `${headline.baselSAvega} EUR m` },
-            { label: 'Market-risk charge, EU, no opt-in', value: `${headline.frtbPenaltyBA}`, hint: 'EUR m, BA-CVA at full hedge' },
+            { label: 'SA − BA gap, full matched hedge', value: `${headline.baselGapFullMatched} → ${headline.euRatGapFullMatched}`, hint: `EUR m, Basel → EU: −${headline.euRatGapCutPctMatched.toFixed(0)} %` },
           ]}
         />
       </Section>
 
-      <Section title="6. Four predictions, four verdicts">
+      <Section title="6. The answer, in two parts">
+        <div className="grid-2">
+          <div className="mini">
+            <h3>Choice of approach</h3>
+            <p>
+              The exclusions leave the ranking unchanged except at the highest excluded shares: BA-CVA stays cheaper, hedged and unhedged at the assumed σ.
+              They do <strong>narrow</strong> SA-CVA's disadvantage, by {headline.euRatGapCutPctMatched.toFixed(0)} % at a full matched hedge, because the excluded names
+              take their vega out of SA-CVA, while BA-CVA, at its floor, loses only a quarter of their stand-alone charge.
+            </p>
+          </div>
+          <div className="mini">
+            <h3>Incentive to hedge</h3>
+            <p>
+              On the names they cover, the exclusions create a <strong>hedging cliff</strong>: a CDS earns no relief and, on the thesis's reading, attracts a Title IV
+              charge. The opt-in removes the cliff only in favour of BA-CVA. Under SA-CVA the incentive is weak anyway, because a CDS cannot reach the rate delta and vega.
+            </p>
+          </div>
+        </div>
+        <p className="muted">
+          This is Chapter 8, §8.1, of the draft of 20 Nov 2026. <Link to="/exemptions">Module 5</Link> derives the narrowing, and{' '}
+          <Link to="/defence">Module 9</Link> lists what changed in that draft and every choice behind the answer.
+        </p>
+      </Section>
+
+      <Section title="7. Four predictions, four verdicts">
         <div className="table-wrap">
           <table className="data verdicts">
             <thead>
               <tr><th>Prediction</th><th>Statement</th><th>Result</th></tr>
             </thead>
             <tbody>
-              <tr><td>P1 · corner hedging under BA-CVA</td><td>Capital is linear in the recognition ratio down to the floor at r = 1, and symmetric beyond it.</td><td className="ok">Confirmed exactly. The hedge tenor acts only through r.</td></tr>
-              <tr><td>P2 · a floor under SA-CVA</td><td>A CDS cannot remove the interest rate delta and vega charges.</td><td className="ok">Confirmed. The floor ({headline.matchedSAfloor}) is above the BA-CVA floor ({headline.betaFloor}).</td></tr>
-              <tr><td>P3 · excluded counterparties</td><td>Hedging them without the opt-in only adds capital; the opt-in favours BA-CVA.</td><td className="ok">Confirmed. The opt-in takes BA-CVA to its floor and raises SA-CVA.</td></tr>
+              <tr><td>P1 · corner hedging under BA-CVA</td><td>Capital is linear in the recognition ratio down to the floor at r = 1, and symmetric beyond it.</td><td className="ok">Mechanism verified numerically: it follows from the formula. The tenor acts only through r.</td></tr>
+              <tr><td>P2 · a floor under SA-CVA</td><td>A CDS cannot remove the interest rate delta and vega charges.</td><td className="ok">Mechanism verified numerically. For this book the floor ({headline.matchedSAfloor}) lies above the BA-CVA floor ({headline.betaFloor}).</td></tr>
+              <tr><td>P3 · excluded counterparties</td><td>Hedging them without the opt-in only adds capital; the opt-in favours BA-CVA.</td><td className="ok">Confirmed in the economic-hedge case (all names hedged): the opt-in lowers BA-CVA and raises SA-CVA.</td></tr>
               <tr><td>P4 · combining approaches</td><td>A mix beats both pure approaches only if counterparties differ enough.</td><td className="no">Condition not met. The best split is all BA-CVA in every cell.</td></tr>
             </tbody>
           </table>
@@ -129,8 +155,9 @@ export default function Thesis() {
           'CRR3 offers two CVA approaches. The EU exempts several counterparty types that Basel would charge.',
           'BA-CVA rewards a CDS hedge linearly, down to a floor of 25 % of the unhedged charge.',
           'SA-CVA rewards a CDS only on its credit spread part. Interest rate delta and vega stay, and here they exceed the BA-CVA floor.',
-          'A hedge on an exempt counterparty is pure cost unless the bank opts in, and the opt-in pays only under BA-CVA.',
-          'Both results rest on an uncalibrated volatility and on CDS as the only hedge. Both choices weigh against SA-CVA.',
+          'The exclusions narrow SA-CVA’s disadvantage (2.45 → 1.35 EUR m at a full matched hedge) without reversing it.',
+          'On the thesis’s reading, a hedge on an exempt counterparty is pure cost unless the bank opts in; the opt-in pays only under BA-CVA.',
+          'The results rest on an uncalibrated volatility, on CDS as the only hedge and on zero hedging cost. The first two weigh against SA-CVA.',
         ]}
       />
 
@@ -152,10 +179,11 @@ export default function Thesis() {
             q: 'A bank buys a CDS on an exempt corporate and does not opt in. What happens to its capital?',
             options: ['It falls', 'Nothing', 'It rises: the CDS is charged under market-risk rules and saves no CVA capital', 'The counterparty is automatically opted in'],
             answer: 2,
-            why: 'Art. 386(5): hedges that are not recognised in the CVA charge go into the market-risk charge, so they only add capital.',
+            why: 'On the thesis’s reading of Art. 386(4)–(5), a hedge that is not recognised in the CVA charge goes into the Title IV market-risk charge, so it only adds capital. The thesis flags this as a reading, not a rule.',
           },
         ]}
       />
+      <DefenceCorner id="thesis" />
       <LessonFooter id="thesis" />
     </article>
   );

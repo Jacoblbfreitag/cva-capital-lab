@@ -1,14 +1,14 @@
 import { useState } from 'react';
 import { Chart, line, palette } from '../components/Chart';
 import { Stats, Toggle, num } from '../components/Controls';
-import { Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Takeaways, TryThis } from '../components/Lesson';
-import { cell, headline, results, type Approach, type Scope } from '../data/results';
+import { DefenceCorner, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Takeaways, TryThis } from '../components/Lesson';
+import { cell, equalNotionalGaps, headline, results, type Approach, type Scope } from '../data/results';
 
 type Regime = 'basel' | 'eu' | 'eu-opt';
 const regimeOpts: { value: Regime; label: string }[] = [
   { value: 'basel', label: 'Basel scope' },
-  { value: 'eu', label: 'EU, no opt-in' },
-  { value: 'eu-opt', label: 'EU, opt-in' },
+  { value: 'eu', label: 'EU, all names hedged, no opt-in' },
+  { value: 'eu-opt', label: 'EU, all names hedged, opt-in' },
 ];
 const split = (r: Regime): [Scope, boolean] => (r === 'basel' ? ['basel', false] : ['eu', r === 'eu-opt']);
 const name = (a: Approach) => (a === 'ba_cva' ? 'BA-CVA' : 'SA-CVA');
@@ -40,6 +40,9 @@ export default function Hedging() {
   const fixed = (a: Approach, n: number) =>
     results.fixedNotional.filter((r) => r.allocation === 'exposure' && r.approach === a && r.notional_target === n).sort((x, y) => x.hedge_tenor! - y.hedge_tenor!);
 
+  const gaps = equalNotionalGaps();
+  const closest = gaps.reduce((m, g) => (g.gap < m.gap ? g : m));
+
   return (
     <article>
       <LessonHeader id="hedging" />
@@ -48,8 +51,13 @@ export default function Hedging() {
         <InPlainWords>
           The thesis buys a CDS on every counterparty and raises the size step by step, from no hedge to a full one. "Hedge ratio 1" means
           the CDS fully offsets what each approach measures: SNH = SCVA under BA-CVA, or the vertex credit spread delta under SA-CVA. Total
-          capital is the CVA charge plus any market-risk charge on hedges that are not recognised.
+          capital is the CVA charge plus any market-risk charge on hedges that are not recognised. In the EU regimes of this module every name is hedged,
+          the excluded ones too: the thesis calls this the economic-hedge case.
         </InPlainWords>
+        <Note title="Equal hedge ratio is not equal notional">
+          At h = 1 BA-CVA buys {headline.hedgeNotionalBA} EUR m of CDS and SA-CVA {headline.hedgeNotionalSA}, and the capital numbers assume the CDS cost nothing (ψ = 0).
+          Section 3 asks whether BA-CVA's lead survives a common notional.
+        </Note>
         <div className="sector-picker">
           <Toggle label="Regime" value={regime} onChange={setRegime} options={regimeOpts} />
           <Toggle label="CDS tenor" value={tenor} onChange={setTenor} options={[{ value: 'five', label: '5-year' }, { value: 'matched', label: 'Matched to the longest trade' }]} />
@@ -66,7 +74,7 @@ export default function Hedging() {
           items={[
             'Basel scope, 5-year CDS: BA-CVA falls in a straight line to 2.12. SA-CVA barely moves, from 10.54 to 8.92.',
             'Switch to matched tenors. BA-CVA is identical: the sizing holds r fixed, and BA-CVA has no tenor of its own. SA-CVA halves.',
-            'EU, no opt-in: BA-CVA bottoms out at 4.14. The CDS on exempt names save nothing and carry 2.35 of FRTB charge.',
+            'EU, all names hedged, no opt-in (the economic-hedge case): BA-CVA bottoms out at 4.14. On the thesis’s reading the CDS on exempt names save nothing and carry 2.35 of Title IV charge. The rational bank leaves those names unhedged and gets 1.78 (Module 5).',
             'EU with opt-in: BA-CVA is back at the Basel floor, while SA-CVA is higher than without the opt-in.',
           ]}
         />
@@ -104,7 +112,36 @@ export default function Hedging() {
         </Example>
       </Section>
 
-      <Section title="3. Tenor: fixed recognition vs fixed notional">
+      <Section title="3. Is the hedged ranking an artefact of notional?">
+        <p>
+          The review panel's sharpest objection: the hedged ranking compares 129 against 23 EUR m of CDS at zero hedging cost, so BA-CVA may look cheaper
+          only because it buys five times the protection for free. Experiment E2b answers it directly. Both approaches get the same total notional, split by the
+          rating-blind exposure basis, at five tenors, in Basel scope.
+        </p>
+        <Chart
+          data={[50, 100, 150].map((n, i) =>
+            line(gaps.filter((g) => g.notional === n).map((g) => g.tenor), gaps.filter((g) => g.notional === n).map((g) => g.gap), `€${n}m`, { mode: 'lines+markers', line: { color: palette[i + 2] } }),
+          )}
+          x="CDS tenor (years)"
+          y="SA-CVA minus BA-CVA at equal notional (EUR m)"
+          height={300}
+        />
+        <Stats
+          items={[
+            { label: 'Cells where BA-CVA is cheaper', value: `${gaps.filter((g) => g.gap > 0).length} of ${gaps.length}` },
+            { label: 'Smallest gap', value: num(closest.gap, 2), hint: `€${closest.notional}m of ${closest.tenor}-year CDS: ${num(closest.sa, 2)} vs ${num(closest.ba, 2)}` },
+            { label: 'Structural reason', value: `${headline.matchedSAfloor} > ${headline.betaFloor}`, hint: 'SA-CVA floor vs BA-CVA floor' },
+          ]}
+        />
+        <Example title="How to answer at the defence">
+          Concede the premise: equal h is not equal notional, and the thesis does not price the CDS. Then give two answers. Structurally, no notional of CDS reaches
+          SA-CVA's rate delta and vega, so its floor ({headline.matchedSAfloor}) stays above BA-CVA's ({headline.betaFloor}). Empirically, at a common notional BA-CVA is
+          cheaper in every E2b cell, by as little as {num(closest.gap, 2)} EUR m. What remains open is a positive running cost ψ, which would penalise BA-CVA's larger notional
+          and shrink its lead. The thesis cannot size that, because ψ is not calibrated.
+        </Example>
+      </Section>
+
+      <Section title="4. Tenor: fixed recognition vs fixed notional">
         <div className="grid-2">
           <div>
             <h3>(a) Notional re-solved for a full hedge at each tenor</h3>
@@ -138,8 +175,8 @@ export default function Hedging() {
         </p>
       </Section>
 
-      <Section title="4. Market-risk charge per euro of relief">
-        <p>When hedges on exempt names are not recognised, the FRTB charge is the price of hedging. At equal notional it is the same under both approaches, so compare per euro of CVA relief (experiment B2, EU without opt-in):</p>
+      <Section title="5. Market-risk charge per euro of relief">
+        <p>When hedges on exempt names are not recognised, the Title IV charge is the price of hedging them. At equal notional it is the same under both approaches, so compare per euro of CVA relief (experiment B2, economic-hedge case: EU, all names hedged, no opt-in):</p>
         <div className="table-wrap">
           <table className="data">
             <thead><tr><th></th><th>5-year CDS</th><th>Matched tenor</th></tr></thead>
@@ -151,11 +188,13 @@ export default function Hedging() {
         </div>
         <Note>
           BA-CVA pays more market-risk charge per euro of relief because its relief per unit of notional is smaller. It still ends up cheaper
-          overall, because its relief comes on a much larger hedgeable share of the charge.
+          overall, because its relief comes on a much larger hedgeable share of the charge. The best totals on that ladder at the matched tenor, resolved to
+          a step of 5 EUR m, are {headline.bestTotalBAMatched} under BA-CVA and {headline.bestTotalSAMatched} under SA-CVA. Two optima at different notionals are a comparison of optima,
+          not of equal notionals.
         </Note>
       </Section>
 
-      <Section title="5. One counterparty's decision path">
+      <Section title="6. One counterparty's decision path">
         <div className="tree">
           <div className="tree-node">Counterparty c</div>
           <div className="tree-q">Excluded under Art. 382(4)?</div>
@@ -169,7 +208,7 @@ export default function Hedging() {
                   <div className="tree-lbl">yes</div>
                   <div className="tree-q">Opt in (Art. 382(4a))?</div>
                   <div className="tree-branches">
-                    <div className="tree-col"><div className="tree-lbl">no</div><div className="tree-out bad">CDS charged under FRTB (Art. 386(5)); no CVA relief</div></div>
+                    <div className="tree-col"><div className="tree-lbl">no</div><div className="tree-out bad">No CVA relief; CDS under Title IV (a reading of Art. 386(4)–(5))</div></div>
                     <div className="tree-col"><div className="tree-lbl">yes</div><div className="tree-out">Into the CVA charge →</div></div>
                   </div>
                 </div>
@@ -192,7 +231,8 @@ export default function Hedging() {
           'BA-CVA rewards a CDS strongly and linearly, from 8.47 to 2.12 EUR m in Basel scope.',
           'SA-CVA rewards it weakly with 5-year CDS (10.54 → 8.92) and better with matched tenors (→ 4.57), but never below its floor.',
           'At equal notional BA-CVA is V-shaped: over-hedging is penalised at the same rate as under-hedging.',
-          'Without the opt-in, the hedges on exempt names make hedging in the EU less attractive than in Basel scope.',
+          'Without the opt-in, hedging an exempt name only costs capital: the hedging cliff. The rational bank leaves those names unhedged.',
+          'Equal h is not equal notional (129 vs 23 EUR m). At a common notional BA-CVA is still cheaper in every E2b cell, by as little as 0.09.',
         ]}
       />
       <Quiz
@@ -212,10 +252,11 @@ export default function Hedging() {
             q: 'In EU scope without opt-in, why is BA-CVA at full hedge 4.14 instead of the 2.12 floor?',
             options: ['The exemptions raise the floor', 'The CDS on exempt names save nothing and add 2.35 of market-risk charge', 'DS_CVA changes', 'SA-CCR changes'],
             answer: 1,
-            why: 'CVA charge 1.78 + FRTB charge 2.35 ≈ 4.14 EUR m.',
+            why: 'CVA charge 1.78 + Title IV charge 2.35 ≈ 4.14 EUR m. The 1.78 is the floor on the eight names in the calculation, the rational cell’s figure.',
           },
         ]}
       />
+      <DefenceCorner id="hedging" />
       <LessonFooter id="hedging" />
     </article>
   );

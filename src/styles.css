@@ -226,3 +226,33 @@ table.data tr.row-muted td { color: var(--muted); background: #fafbfc; }
 .tree-out.good { border-color: var(--good); background: #eaf7f1; }
 .tree-lbl { font-size: 11px; text-transform: uppercase; letter-spacing: 0.06em; color: var(--muted); font-weight: 700; }
 @media (max-width: 700px) { .tree-branches { flex-direction: column; } }
+
+/* ── Defence corner: examiner questions (pattern shared with portfolio-management-lab's interview cards) ── */
+.interview { border-color: #f1d9d4; }
+.iv-card { border: 1px solid var(--line); border-radius: 10px; padding: 12px 16px; margin-top: 10px; background: #fff; }
+.iv-meta { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 4px; align-items: center; }
+.iv-topic, .iv-level { font-size: 11.5px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.05em; border-radius: 999px; padding: 1px 8px; }
+.iv-topic { background: var(--accent-soft); color: var(--accent); }
+.iv-level.core { background: #eaf7f1; color: var(--good); }
+.iv-level.hard { background: #fdecea; color: var(--bad); }
+.iv-where { font-size: 12px; color: var(--muted); }
+.iv-q { font-weight: 600; margin-bottom: 6px; }
+.iv-a { font-size: 14.5px; color: var(--ink); background: #fafbfc; border-radius: 8px; padding: 10px 12px; }
+.iv-weak { font-size: 14px; margin-top: 8px; background: #fdf5e8; border-left: 3px solid #a6600f; border-radius: 6px; padding: 8px 12px; }
+.defence-filters { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: end; margin-bottom: 8px; }
+.flashcards { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.flashcard { border: 1px solid var(--line); border-radius: 10px; padding: 10px 12px; background: #fff; text-align: left; cursor: pointer; font: inherit; }
+.flashcard .fc-label { font-size: 13px; color: var(--muted); }
+.flashcard .fc-value { font-size: 20px; font-weight: 700; font-variant-numeric: tabular-nums; margin: 4px 0 2px; }
+.flashcard .fc-hidden { font-size: 20px; font-weight: 700; color: var(--line); margin: 4px 0 2px; }
+.flashcard .fc-context { font-size: 12.5px; color: var(--muted); }
+.kind-tag { font-size: 11px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.04em; border-radius: 999px; padding: 1px 7px; white-space: nowrap; }
+.kind-tag.reading { background: #efe9fb; color: #5b3fa0; }
+.kind-tag.assumption { background: #fdf5e8; color: #a6600f; }
+.kind-tag.data { background: #eef2f6; color: #4a5868; }
+.kind-tag.design { background: var(--accent-soft); color: var(--accent); }
+table.data.wrap td { white-space: normal; text-align: left; vertical-align: top; }
+.changelog li + li { margin-top: 6px; }
+table.data.limit-map th, table.data.limit-map td { text-align: center; white-space: normal; }
+table.data.limit-map th:first-child, table.data.limit-map td:first-child { text-align: left; white-space: nowrap; }
+table.data.limit-map td { color: var(--accent); font-size: 16px; }

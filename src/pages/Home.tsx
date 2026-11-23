@@ -22,8 +22,10 @@ export function Home() {
           hedges. Unhedged, SA-CVA costs {headline.baselSA} against {headline.baselBA} EUR m. About a third of that is
           interest rate vega, which the exposure model's volatility drives. Fully hedged with CDS, BA-CVA falls to its supervisory floor of{' '}
           {headline.betaFloor} EUR m, while SA-CVA cannot go below its interest rate and vega charges, about {headline.matchedSAfloor} EUR m.
-          The EU exemptions lower both charges. But a CDS bought on an <em>excluded</em> counterparty adds a market-risk charge and
-          saves nothing, unless the bank opts that counterparty back in. The opt-in pays under BA-CVA and costs capital under SA-CVA.
+          The EU exemptions lower both charges and <strong>narrow SA-CVA's disadvantage</strong>, from {headline.baselGapFullMatched} to{' '}
+          {headline.euRatGapFullMatched} EUR m at a full matched hedge, without reversing it. On the names they cover they create a hedging cliff:
+          a CDS on an <em>excluded</em> counterparty saves nothing and, on the thesis's reading, adds a market-risk charge, unless the bank opts the name back in.
+          The opt-in pays under BA-CVA and costs capital under SA-CVA.
         </p>
       </section>
 
@@ -35,7 +37,8 @@ export function Home() {
           </li>
           <li>
             <strong>Go in order for the full story.</strong> Modules 1–2 are the ingredients (CVA, exposure, SA-CCR). Modules 3–4
-            are the two capital approaches. Modules 5–7 are the thesis's own contribution: exemptions, hedging incentives and results.
+            are the two capital approaches. Modules 5–7 are the thesis's own contribution: exemptions, hedging incentives and results. Module 8 is the
+            Pillar 3 evidence from 12 banks.
           </li>
           <li>
             <strong>Do the "Try this" boxes.</strong> Predict what a chart will do before you move the slider.
@@ -44,6 +47,11 @@ export function Home() {
             <strong>Live vs frozen numbers.</strong> SA-CCR and BA-CVA are recomputed live in your browser from the portfolio.
             SA-CVA needs 200 000 Monte Carlo paths, so its charts read the thesis's frozen run. The app re-aggregates those
             sensitivities with the Art. 383b formulas, and the tests check that both reproduce the thesis to the third decimal.
+          </li>
+          <li>
+            <strong>Preparing for the defence?</strong> Every module ends with a <em>Defence corner</em> of examiner questions.{' '}
+            <Link to="/defence">Module 9</Link> collects all of them, every modelling choice with its reason, the numbers to know, and what changed in the
+            draft of 20 Nov 2026.
           </li>
           <li>
             <strong>Forgot a term?</strong> Look it up in the <Link to="/glossary">glossary</Link>.
@@ -69,8 +77,9 @@ export function Home() {
         <div className="roadmap">
           <div><strong>Ingredients</strong><span>CVA · expected exposure · Hull–White · SA-CCR</span></div>
           <div><strong>Two capital approaches</strong><span>BA-CVA (Art. 384) · SA-CVA (Art. 383)</span></div>
-          <div><strong>The EU twist</strong><span>Art. 382(4) exemptions · opt-in · Art. 386(5) market-risk charge</span></div>
-          <div><strong>Incentives &amp; results</strong><span>Hedge ladder · tenor · mixing approaches · robustness</span></div>
+          <div><strong>The EU twist</strong><span>Art. 382(4) exemptions · rational cell · opt-in · Title IV reading</span></div>
+          <div><strong>Incentives &amp; results</strong><span>Hedge ladder · tenor · mixing approaches · robustness · limitations</span></div>
+          <div><strong>Evidence &amp; defence</strong><span>Pillar 3 of 12 banks · every choice · examiner questions</span></div>
         </div>
         <p className="muted">
           Regulatory source: Regulation (EU) 575/2013 as amended by (EU) 2024/1623 (CRR3), Title VI Art. 382–386 and the

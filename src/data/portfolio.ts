@@ -68,10 +68,11 @@ export const portfolio: CounterpartySpec[] = [
 ];
 
 export const exemptionLetters: Record<string, string> = {
-  '(a)': 'Non-financial counterparty below the EMIR clearing threshold',
-  '(b)': 'Intragroup transaction with an EU financial counterparty',
-  '(c)': 'Pension scheme arrangement (EMIR transition, now expired for new trades)',
-  '(d)': 'Counterparty with a 0 % risk weight (EU central or regional government)',
+  '(a)': 'Non-financial counterparty below the EMIR clearing threshold, in the Union or a third country',
+  '(aa)': 'Intragroup transaction with a non-financial counterparty of the same group, under conditions on consolidation and risk control; a third-country entity needs a Commission equivalence decision (Art. 382(4c))',
+  '(b)': 'Intragroup transaction with a financial counterparty, financial institution or ancillary services undertaking in the Union or an equivalent third country; where national law requires structural separation, the authority may require inclusion',
+  '(c)': 'Pension scheme arrangement, until the EMIR Art. 89(1) transition ceases to apply (ended 18 June 2023 after two extensions; legacy trades stay exempt for life)',
+  '(d)': 'Counterparties of EMIR Art. 1(4) and (5), such as central banks and public debt managers, and counterparties with a 0 % risk weight under Art. 114(4) or 115(2)',
 };
 
 export const totalNotional = (c: CounterpartySpec) => c.nettingSets.flatMap((n) => n.trades).reduce((s, t) => s + t.notional, 0);

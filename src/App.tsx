@@ -13,6 +13,8 @@ const pages: Record<string, React.LazyExoticComponent<() => JSX.Element>> = {
   exemptions: lazy(() => import('./pages/Exemptions')),
   hedging: lazy(() => import('./pages/Hedging')),
   results: lazy(() => import('./pages/Results')),
+  pillar3: lazy(() => import('./pages/Pillar3')),
+  defence: lazy(() => import('./pages/Defence')),
 };
 const Glossary = lazy(() => import('./pages/Glossary'));
 
@@ -60,7 +62,7 @@ export function App() {
               Glossary
             </NavLink>
           </nav>
-          <div className="sidebar-foot">Numbers come from the thesis's frozen run (v0.8). Stylised portfolio, not real bank data.</div>
+          <div className="sidebar-foot">Numbers come from the thesis's frozen run (v0.8), read with the 20 Nov 2026 draft. Stylised portfolio; Module 8 quotes real Pillar 3 reports.</div>
         </aside>
         <main className="content">
           <Suspense fallback={<div className="loading">Loading lesson…</div>}>

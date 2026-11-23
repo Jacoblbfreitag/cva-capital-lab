@@ -1,6 +1,7 @@
 /** Building blocks for lesson pages: sections, callouts, quizzes, code pointers. */
 import { useState, type ReactNode } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
+import { defenceQuestions } from '../data/defence';
 import { glossary } from '../data/glossary';
 import { lessons } from '../lessons';
 import { Tex } from './Formula';
@@ -153,6 +154,54 @@ export function CodeRef({ file, children }: { file: string; children?: ReactNode
       </a>
       {children && <div>{children}</div>}
     </aside>
+  );
+}
+
+/** One examiner question: answer it out loud, then reveal the answer drawn from the thesis. */
+export function DefenceCard({ q, a, weak, where, level, topicLabel }: { q: string; a: string; weak?: string; where?: string; level: 'core' | 'hard'; topicLabel?: string }) {
+  const [open, setOpen] = useState(false);
+  return (
+    <div className="iv-card">
+      <div className="iv-meta">
+        {topicLabel && <span className="iv-topic">{topicLabel}</span>}
+        <span className={`iv-level ${level}`}>{level === 'core' ? 'Expect it' : 'Hostile examiner'}</span>
+        {where && <span className="iv-where">{where}</span>}
+      </div>
+      <div className="iv-q">“{q}”</div>
+      {open ? (
+        <>
+          <div className="iv-a">{a}</div>
+          {weak && (
+            <div className="iv-weak">
+              <strong>Concede: </strong>
+              {weak}
+            </div>
+          )}
+        </>
+      ) : (
+        <button type="button" className="link-button" onClick={() => setOpen(true)}>
+          Answer it out loud first, then show the thesis's answer
+        </button>
+      )}
+    </div>
+  );
+}
+
+/** The defence questions for one lesson, from src/data/defence.ts. */
+export function DefenceCorner({ id }: { id: string }) {
+  const qs = defenceQuestions.filter((x) => x.topic === id);
+  if (!qs.length) return null;
+  return (
+    <section className="section interview">
+      <h2>Defence corner</h2>
+      <p className="muted">
+        Questions an examiner could ask about this module. Answer each one out loud in under a minute, then compare with the answer drawn from the
+        thesis. All of them, with every modelling choice, are in <Link to="/defence">Module 9</Link>.
+      </p>
+      {qs.map((x) => (
+        <DefenceCard key={x.q} {...x} />
+      ))}
+    </section>
   );
 }
 

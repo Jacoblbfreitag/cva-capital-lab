@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Chart, line, linspace, palette } from '../components/Chart';
 import { Playground, Slider, Stats, Toggle, bp, num, pct } from '../components/Controls';
 import { TexBlock } from '../components/Formula';
-import { CodeRef, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
+import { CodeRef, DefenceCorner, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
 import { headline, results } from '../data/results';
 import { regulatoryCva, simulateExposure } from '../models/exposure';
 
@@ -45,7 +45,7 @@ export default function Cva() {
             over the life of the trade. Banks deduct it from the value of the swap.
           </p>
         </InPlainWords>
-        <p>CRR3 Art. 383a(1) fixes the formula the regulatory model must use:</p>
+        <p>CRR3 Art. 383a prescribes the <em>ingredients</em> of the regulatory CVA (spread-implied default probabilities, a market-consensus LGD, the exposure model) but no functional form. The thesis discretises the unilateral CVA on its quarterly grid as:</p>
         <TexBlock>{String.raw`\mathrm{CVA} = \mathrm{LGD}_{\mathrm{MKT}}\sum_{k=1}^{n}\bigl(S_{k-1} - S_k\bigr)\,\frac{\mathrm{dEE}_{k-1} + \mathrm{dEE}_k}{2},\qquad S_k = \exp\!\Bigl(-\frac{s_k\, t_k}{\mathrm{LGD}_{\mathrm{MKT}}}\Bigr)`}</TexBlock>
         <Symbols
           items={[
@@ -106,8 +106,8 @@ export default function Cva() {
         <p>
           CVA is a valuation adjustment, so when it moves, the bank books a profit or a loss. It moves when the counterparty's{' '}
           <strong>credit spread</strong> changes and when the <strong>exposure</strong> changes, that is, with interest rates and their
-          volatility. In the 2007–09 crisis, roughly two thirds of counterparty credit losses came from these
-          mark-to-market moves, not from actual defaults (BCBS). That is the risk the CVA capital charge covers.
+          volatility. The Basel Committee's stated reason for the charge is that CVA risk had been a greater source of losses during the
+          crisis than outright defaults (Basel III, 2011, para. 14(b)). That is the risk the CVA capital charge covers.
         </p>
         <Chart data={[line(spreads.map((s) => s * 1e4), spreads.map((s) => regulatoryCva(prof.t, prof.dee, s, lgd)), 'CVA of the swap above')]} x="Credit spread (bp)" y="CVA (EUR m)" height={280} />
         <Note title="Two drivers, two approaches">
@@ -116,7 +116,24 @@ export default function Cva() {
         </Note>
       </Section>
 
-      <Section title="4. The thesis's book">
+      <Section title="4. From Basel III to CRR3: how the charge got here">
+        <div className="table-wrap">
+          <table className="data wrap">
+            <thead><tr><th>Year</th><th>Text</th><th>What it did</th></tr></thead>
+            <tbody>
+              <tr><td>2011</td><td>Basel III (BCBS)</td><td>A first CVA charge: an advanced method on the bank's bond VaR model and a standardised supervisory formula. Credit spread risk only.</td></tr>
+              <tr><td>2015</td><td>Review of the CVA framework (consultation)</td><td>Three motivations: the charge ignored the exposure component and its hedges, it had fallen behind accounting practice, and it was inconsistent with the new market-risk framework. The aim was to reduce the incentive “to leave some of their risks unhedged”.</td></tr>
+              <tr><td>2017, 2020</td><td>Finalising Basel III; targeted revision</td><td>The replacement with two approaches, SA-CVA (sensitivity-based, on the bank's own CVA model) and BA-CVA (a supervisory formula). Now chapter MAR50 of the Basel Framework.</td></tr>
+              <tr><td>2024</td><td>CRR3, Regulation (EU) 2024/1623</td><td>The EU transposition, applying from 2025, keeping the Art. 382(4) exclusions, which the thesis treats as EU-specific, and adding the opt-in of Art. 382(4a). No parameter of the thesis comes from MAR50.</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <p className="muted">
+          Chapter 2 of the thesis. The 2015 aim matters at the defence: Chapter 8 sets the hedging cliff that the exclusions create against it.
+        </p>
+      </Section>
+
+      <Section title="5. The thesis's book">
         <p>
           The thesis runs the same calculation for all 17 counterparties. Their aggregate CVA is €{headline.cvaAggregate}m, with a
           Monte Carlo standard error of 0.3 %. Pick a counterparty to see its frozen exposure profile.
@@ -186,6 +203,7 @@ export default function Cva() {
           },
         ]}
       />
+      <DefenceCorner id="cva" />
       <LessonFooter id="cva" />
     </article>
   );

@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Chart, line, linspace, palette } from '../components/Chart';
 import { Playground, Slider, Stats, Toggle, num, pct } from '../components/Controls';
 import { TexBlock } from '../components/Formula';
-import { CodeRef, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
+import { CodeRef, DefenceCorner, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
 import { portfolio } from '../data/portfolio';
 import { cell, headline, results, saCvaFromSensitivities, sensitivities } from '../data/results';
 import { closedForm, kReduced, scva } from '../models/baCva';
@@ -216,6 +216,7 @@ export default function SaCva() {
           },
         ]}
       />
+      <DefenceCorner id="sa-cva" />
       <LessonFooter id="sa-cva" />
     </article>
   );

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Chart, line, palette } from '../components/Chart';
 import { Stats, Toggle, num } from '../components/Controls';
-import { CodeRef, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Takeaways } from '../components/Lesson';
+import { Link } from 'react-router-dom';
+import { CodeRef, DefenceCorner, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Takeaways } from '../components/Lesson';
 import { headline, results } from '../data/results';
 
 const variations: { value: string; label: string; unit: (v: number | string) => string }[] = [
@@ -11,6 +12,18 @@ const variations: { value: string; label: string; unit: (v: number | string) => 
   { value: 'credit_spreads', label: 'Credit spreads ×', unit: (v) => `×${v}` },
   { value: 'monte_carlo', label: 'MC paths', unit: (v) => `${Number(v).toLocaleString('en')}` },
   { value: 'ds_cva_whatif', label: 'DS_CVA (what-if)', unit: (v) => String(v) },
+];
+
+// The seven limitations of Ch. 8 §8.2 and the dot matrix of Figure 8.1.
+const conclusions = ['Unhedged ranking', 'P1 corner', 'P2 SA dearer hedged', 'P3 excluded name', 'P4 no gain from mix', 'Hedged capital level'];
+const limitations: { name: string; hits: number[]; direction: string; evidence: string }[] = [
+  { name: 'Uncalibrated σ', hits: [0, 2, 3], direction: 'Lower σ shrinks vega and favours SA-CVA unhedged (break-even ≈ 66 bp). Hedged ranking survives ±50 % (2.49 vs 2.12 at half σ). Would also make the SA-CVA opt-in less costly.', evidence: 'Run (Appendix B); the opt-in effect is not run.' },
+  { name: 'No vega hedges', hits: [2, 4, 5], direction: 'Swaptions are eligible for SA-CVA only (Art. 386(2)(b) vs 386(3)). A vega hedge would need to cut about half of the 4.03 floor to beat 2.12.', evidence: 'Arithmetic from two figures; not run.' },
+  { name: 'No CDS market for the names', hits: [1, 2, 5], direction: 'Index or proxy CDS (Table 2: 100/80/50 %) keep BA-CVA above its floor; hedged BA-CVA rises, gap narrows.', evidence: 'Argument; not tested.' },
+  { name: 'Cleared-hedge assumption', hits: [2, 5], direction: 'Bilateral CDS sit in the CVA charge; BA-CVA rises more (129 vs 23 EUR m notional), gap narrows.', evidence: 'Argument; not tested.' },
+  { name: 'Title IV reading', hits: [3], direction: 'Another reading removes the cost of hedging an excluded name: the first half of P3 becomes neutrality.', evidence: 'A reading; the rational-cell result does not depend on it.' },
+  { name: 'Stylised book, Pension fund E', hits: [3, 4], direction: 'Pension fund E is 40.65 % of Σ SCVA; exempting it puts the book beyond the tested ladder (59.35 %).', evidence: 'Conditional; P4 should not be carried beyond this book.' },
+  { name: 'Wrong-way risk', hits: [0, 5], direction: 'Probably raises SA-CVA (not BA-CVA under SA-CCR), favouring BA-CVA unhedged.', evidence: 'Argument; not a result.' },
 ];
 
 export default function Results() {
@@ -48,20 +61,27 @@ export default function Results() {
       <Section title="1. The answer to the research question">
         <InPlainWords>
           <p>
-            <strong>Choice of approach.</strong> For this book BA-CVA is cheaper, unhedged and hedged. The exemptions do not change the
-            order. They lower both charges, and SA-CVA by a little more because exempt names carry vega.
+            <strong>Part one, the choice of approach.</strong> The Art. 382(4) exclusions leave the ranking unchanged, except at the highest excluded shares.
+            BA-CVA stays cheaper than SA-CVA, hedged and unhedged, at the assumed σ. The exclusions do narrow SA-CVA's disadvantage, from{' '}
+            {headline.baselGapFullMatched} to {headline.euRatGapFullMatched} EUR m at a full matched hedge, because vega-heavy names leave SA-CVA while BA-CVA loses only
+            their stand-alone charges. Unhedged, the ranking turns on σ, which the thesis does not settle.
           </p>
           <p>
-            <strong>Incentive to hedge.</strong> BA-CVA gives a strong, linear incentive to buy CDS, up to exactly full recognition and no
-            further. SA-CVA gives a weak one, limited to the credit spread part of the charge. In the EU, a hedge on an exempt counterparty
-            carries a capital <em>penalty</em> unless the bank opts in. The opt-in removes the penalty under BA-CVA and costs vega under SA-CVA.
+            <strong>Part two, the incentive to hedge.</strong> The exclusions create a hedging cliff on the names they cover. A CDS on an excluded name earns no
+            relief and, on the thesis's reading, attracts the Title IV charge, while leaving it unhedged costs nothing. The opt-in removes the cliff only in favour of
+            BA-CVA ({headline.euBAnoOptInFull} → {headline.euBAoptInFull}), and raises SA-CVA. Under SA-CVA the incentive is weak in any case: a matched-tenor CDS leaves the
+            rate delta and vega in place, so the permission and fixed cost of Art. 383(1) buy no capital advantage for this book.
           </p>
           <p style={{ marginBottom: 0 }}>
-            <strong>So</strong> the EU exemptions reinforce BA-CVA. A bank that hedges, and opts in its hedged exempt names, ends up at the BA-CVA
-            floor of {headline.betaFloor} EUR m, against {headline.matchedSAfullHedge} for the same strategy under SA-CVA. Only at the far end of the
-            exempt-share ladder (about 59 % of the book exempt, no opt-in) does SA-CVA become the cheaper approach.
+            <strong>Against the aim of the Basel review</strong>, to reduce the incentive “to leave some of their risks unhedged” (BCBS 2015, p. 2), the exclusions
+            work in the opposite direction on the names they cover.
           </p>
         </InPlainWords>
+        <Note title="What the earlier version of this page said">
+          It said that the EU exemptions “reinforce BA-CVA”, and that a bank that hedges and opts in ends at the BA-CVA floor. The 20 Nov draft corrects both. The
+          exclusions narrow SA-CVA's disadvantage. The cheapest EU cell is the rational one, with excluded names left unhedged and no opt-in, at{' '}
+          {headline.euRatBAfullMatched} EUR m under BA-CVA, below the opt-in's {headline.euBAoptInFull}.
+        </Note>
       </Section>
 
       <Section title="2. Mixing the approaches (Art. 382a(3))">
@@ -98,7 +118,9 @@ export default function Results() {
         <Toggle label="Vary one factor (EU scope, opt-in, matched-tenor CDS, 10 000 paths)" value={variation} onChange={setVariation} options={variations.map(({ value, label }) => ({ value, label }))} />
         <Chart data={robChart as never} y="Total capital (EUR m)" height={340} layout={{ barmode: 'group' }} />
         <Note>
-          BA-CVA moves by {num(0, 2)} % across every exposure-model factor, because Art. 384(2) takes its exposure from SA-CCR. SA-CVA moves by{' '}
+          These runs use EU scope with the opt-in, the matched-tenor hedge and 10 000 paths, so they are not the baseline of Table 6.1: unhedged SA-CVA is{' '}
+          {headline.robBaseSAzero} here against {headline.euSA} there. BA-CVA moves by {num(0, 2)} % across every exposure-model factor, because under SA-CCR, as assumed
+          here, the exposure value does not come from the simulation. SA-CVA moves by{' '}
           {headline.robSigmaLowPct} % and +{headline.robSigmaHighPct} % when σ is halved or raised by half. Monte Carlo noise is small by comparison: {headline.mcStdPct} % at
           10 000 paths. The DS_CVA row is a what-if: Art. 384(2) fixes it at 0.65.
         </Note>
@@ -131,18 +153,62 @@ export default function Results() {
         </Example>
       </Section>
 
-      <Section title="5. Limitations and what could change the answer">
-        <ul>
-          <li><strong>Uncalibrated volatility.</strong> No public EUR swaption volatility file was available, so σ = 80 bp is assumed. It sets the size of the vega charge.</li>
-          <li><strong>CDS as the only hedge.</strong> Art. 386(2)(b) would also recognise interest rate swaps and swaptions as hedges of the exposure component under SA-CVA. They could lower K<sub>IR</sub> and K<sub>vega</sub>, the very floor that decides the comparison.</li>
-          <li><strong>A stylised book.</strong> 17 counterparties, EUR swaps only, at inception, almost no collateral. A book dominated by hedgeable credit spread delta could favour SA-CVA or a mix.</li>
-          <li><strong>One reading of Art. 384(3).</strong> DS_CVA is applied inside the reduced formula, as the transcribed text and the Basel calibration have it. The EBA declined to confirm this for CRR2 (Q&amp;A 2023_6899).</li>
-          <li><strong>The incentive is about capital only.</strong> CDS premia net out at par. Bid-offer, funding and the fixed cost F of SA-CVA are in the objective but not quantified.</li>
-        </ul>
-        <p>Both main limitations weigh against SA-CVA: the first sets the size of its vega charge, and the second rules out the hedges that would reduce it.</p>
+      <Section title="5. Seven limitations, and what each could move">
+        <p>
+          Chapter 8 states each limitation with the conclusion it could change, the direction, and whether the results support that direction or it is only an argument.
+          In the map (Figure 8.1 of the thesis) a dot means the limitation <em>could</em> move the conclusion, not that it does.
+        </p>
+        <div className="table-wrap">
+          <table className="data limit-map">
+            <thead>
+              <tr><th>Limitation</th>{conclusions.map((c) => <th key={c}>{c}</th>)}</tr>
+            </thead>
+            <tbody>
+              {limitations.map((l) => (
+                <tr key={l.name}>
+                  <td>{l.name}</td>
+                  {conclusions.map((c, i) => <td key={c}>{l.hits.includes(i) ? '●' : ''}</td>)}
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <div className="table-wrap">
+          <table className="data wrap">
+            <thead><tr><th>Limitation</th><th>Direction</th><th>Evidence</th></tr></thead>
+            <tbody>
+              {limitations.map((l) => (
+                <tr key={l.name}><td><strong>{l.name}</strong></td><td>{l.direction}</td><td>{l.evidence}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+        <p>
+          Several of these weigh against SA-CVA: σ sets the size of its vega charge, and the missing vega hedges are the ones that would reduce it. Two weigh the
+          other way. Index or proxy hedges and bilateral CDS would both raise hedged BA-CVA more than SA-CVA and narrow the gap.
+        </p>
       </Section>
 
-      <Section title="6. Reproducibility">
+      <Section title="6. Policy: do the provisions do what their design implies?">
+        <p>
+          The draft cannot judge the exclusions against their stated intent, because it has not yet sourced it (the recitals of Regulation (EU) 2024/1623). Chapter 8
+          therefore judges internal consistency only:
+        </p>
+        <ul>
+          <li><strong>The exclusions lower unhedged capital, as designed.</strong></li>
+          <li><strong>The opt-in is consistent for BA-CVA users, not for SA-CVA users.</strong> For an SA-CVA bank it raises the requirement, because the vega a CDS cannot hedge comes in. That is a feature of the design, not of the calibration, although its size rests on σ.</li>
+          <li><strong>The SA-CVA cost need not be borne.</strong> The bank could opt the name in under BA-CVA (Art. 382(4a) with 382a(3)(a)). Not computed, and supervisory acceptance is open.</li>
+          <li><strong>The supervisor's view is partial.</strong> The Art. 382(4b) report covers the excluded transactions alone, says nothing about their hedges, and is not the whole-book effect of the exclusions (<Link to="/exemptions">Module 5</Link>, Section 7).</li>
+        </ul>
+        <Note title="Further research the thesis names">
+          (1) Calibrate σ, and the mean reversion with it, to swaption prices, bumping implied volatilities; the euro mean reversion was negative in spring 2020. (2) Admit
+          swaptions and swaps as exposure hedges under Art. 386(2)(b), which tests directly whether the SA-CVA floor can fall below the BA-CVA floor. (3) Index and proxy CDS
+          at the Table 2 correlations, and the counterparty risk of the hedge. (4) Wrong-way risk, a larger multi-currency book with options, and calibrated κ and F.
+          (5) Supervisory data from the Art. 382(4b) reports, if they became available.
+        </Note>
+      </Section>
+
+      <Section title="7. Reproducibility">
         <p>
           The thesis pipeline (<code>python scripts/reproduce.py</code>) reruns pytest, the exposure engine, the 32-cell baseline, experiments A–F and the
           robustness block in about seven minutes. Every result folder carries a manifest with the git SHA, the config hashes, the seed and the
@@ -154,10 +220,11 @@ export default function Results() {
 
       <Takeaways
         items={[
-          'BA-CVA is the cheaper approach for this book with and without hedges, and the exemptions reinforce that.',
+          'BA-CVA is the cheaper approach for this book with and without hedges at the assumed σ. The exclusions narrow SA-CVA’s disadvantage by 45 % (full matched hedge) without reversing it.',
           'Mixing the approaches gains nothing: the best split is all BA-CVA in all 24 cells.',
           'Unhedged, the ranking depends on σ (break-even ≈ 66 bp). Hedged, it does not.',
           'Recognising interest rate hedges under SA-CVA, or a calibrated lower σ, are the two things most likely to change the answer.',
+          'The opt-in is internally consistent for BA-CVA users only, and the Art. 382(4b) report cannot show the hedging cliff.',
         ]}
       />
       <Quiz
@@ -166,7 +233,7 @@ export default function Results() {
             q: 'Why does BA-CVA not move at all in the robustness runs on σ, a and the curve?',
             options: ['It uses a fixed CVA', 'Its exposure comes from SA-CCR, not from the simulation', 'It is floored', 'It only uses credit spreads'],
             answer: 1,
-            why: 'Art. 384(2) takes EAD from SA-CCR, which has no exposure model inside.',
+            why: 'The thesis assumes an SA-CCR institution, and SA-CCR has no exposure model inside. Art. 384(2) also admits the other methods of Title II Ch. 6, so this is “as assumed here”.',
           },
           {
             q: 'Which extension would most likely help SA-CVA?',
@@ -176,6 +243,7 @@ export default function Results() {
           },
         ]}
       />
+      <DefenceCorner id="results" />
       <LessonFooter id="results" />
     </article>
   );

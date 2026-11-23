@@ -2,7 +2,7 @@ import { useMemo, useState } from 'react';
 import { Chart, line, linspace, palette } from '../components/Chart';
 import { Playground, Slider, Stats, Toggle, num, pct } from '../components/Controls';
 import { TexBlock } from '../components/Formula';
-import { CodeRef, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
+import { CodeRef, DefenceCorner, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
 import { portfolio, sectorLabels, type Sector } from '../data/portfolio';
 import { BETA, R_HC, RISK_WEIGHTS, closedForm, discountFactor, kReduced, kTotal, nettingSetInputs, riskWeight, scva, type HedgeRelation } from '../models/baCva';
 
@@ -170,6 +170,11 @@ export default function BaCva() {
           K_hedged has no DS of its own; Art. 384(2) applies DS outside it. With HMA = IH = 0 it equals |1 − r| · K_reduced / DS.
           Multiplying by DS·(1 − β) brings back |1 − r|·(1 − β)·K_reduced, so DS cancels.
         </Note>
+        <Note title="Is DS_CVA an EU departure? (changed in the 20 Nov draft)">
+          No longer, in the thesis. Art. 384(3) puts the scalar inside BACVA<sub>csr-unhedged</sub>, so the full version without hedges equals the reduced
+          version, the result the Basel formula also gives. The EBA was asked in 2023 whether the scalar applies to the reduced version and rejected the question because
+          CRR3 was then being drafted (Q&amp;A 2023_6899), so the reading rests on the text alone. Banks print EU CVA2 three different ways (Module 8).
+        </Note>
       </Section>
 
       <Section title="5. Tenor is a substitute for notional">
@@ -213,6 +218,7 @@ export default function BaCva() {
           },
         ]}
       />
+      <DefenceCorner id="ba-cva" />
       <LessonFooter id="ba-cva" />
     </article>
   );

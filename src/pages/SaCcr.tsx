@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { Chart, line, linspace } from '../components/Chart';
 import { Playground, Slider, Stats, Toggle, num } from '../components/Controls';
 import { TexBlock } from '../components/Formula';
-import { CodeRef, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
+import { CodeRef, DefenceCorner, Example, InPlainWords, LessonFooter, LessonHeader, Note, Quiz, Section, Symbols, Takeaways, Term, TryThis } from '../components/Lesson';
 import { portfolio } from '../data/portfolio';
 import { ead, saCcr, supervisoryDuration, type Swap } from '../models/saCcr';
 
@@ -160,7 +160,7 @@ export default function SaCcr() {
           'SA-CCR turns notional, maturity and direction into EAD with a fixed formula: no simulation, no volatility.',
           'Opposite trades net within a maturity bucket, and partly across buckets.',
           'Daily margin cuts the maturity factor to 0.3, and the EAD with it.',
-          'Because BA-CVA takes its exposure from SA-CCR, it is immune to the exposure model, unlike SA-CVA.',
+          'For an institution that uses SA-CCR, as the thesis assumes, BA-CVA is immune to the exposure model, unlike SA-CVA. Art. 384(2) also admits the IMM, which would change that.',
         ]}
       />
       <Quiz
@@ -175,10 +175,11 @@ export default function SaCcr() {
             q: 'If the thesis doubles the Hull–White volatility, BA-CVA…',
             options: ['doubles', 'does not change', 'halves', 'rises by √2'],
             answer: 1,
-            why: 'BA-CVA reads EAD from SA-CCR, which has no volatility in it. Its robustness rows are flat at 0.00 %.',
+            why: 'In the thesis BA-CVA reads EAD from SA-CCR (an assumption about the institution), and SA-CCR has no volatility in it. Its robustness rows are flat at 0.00 %.',
           },
         ]}
       />
+      <DefenceCorner id="sa-ccr" />
       <LessonFooter id="sa-ccr" />
     </article>
   );
